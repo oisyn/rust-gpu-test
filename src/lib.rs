@@ -2,7 +2,6 @@ use winit::{
     event::*,
     event_loop::{ControlFlow, EventLoop},
     window::{Window, WindowBuilder},
-
 };
 
 struct State {
@@ -13,6 +12,8 @@ struct State {
     size: winit::dpi::PhysicalSize<u32>,
     render_pipeline: wgpu::RenderPipeline,
 }
+
+//const SHADER: &[u8] = include_bytes!("..\\target\\spirv-builder\\spirv-unknown-vulkan1.1\\release\\deps\\shaders.spv.dir\\main_fs");
 
 impl State {
     // Creating some of the wgpu types requires async code
@@ -33,7 +34,7 @@ impl State {
 
         let (device, queue) = adapter.request_device(
             &wgpu::DeviceDescriptor {
-                features: wgpu::Features::empty(),
+                features: wgpu::Features::SPIRV_SHADER_PASSTHROUGH,
                 // WebGL doesn't support all of wgpu's features, so if
                 // we're building for the web we'll have to disable some.
                 limits: if cfg!(target_arch = "wasm32") {
@@ -57,8 +58,10 @@ impl State {
 
         let shader = device.create_shader_module(&wgpu::ShaderModuleDescriptor {
             label: Some("Shader"),
-            source: wgpu::ShaderSource::Wgsl(include_str!("shader.wgsl").into()),
+            source: wgpu::ShaderSource::Wgsl(include_str!("shader.wgsl").into())
         });
+
+        let shader_rust = device.create_shader_module(&wgpu::include_spirv!("..\\target\\spirv-builder\\spirv-unknown-vulkan1.1\\release\\deps\\shaders.spv.dir\\main_fs"));
 
         let render_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
             label: Some("Render Pipeline Layout"),
@@ -71,12 +74,12 @@ impl State {
             layout: Some(&render_pipeline_layout),
             vertex: wgpu::VertexState {
                 module: &shader,
-                entry_point: "vs_main", // 1.
+                entry_point: "main_vs", // 1.
                 buffers: &[], // 2.
             },
             fragment: Some(wgpu::FragmentState { // 3.
-                module: &shader,
-                entry_point: "fs_main",
+                module: &shader_rust,
+                entry_point: "main_fs",
                 targets: &[wgpu::ColorTargetState { // 4.
                     format: config.format,
                     blend: Some(wgpu::BlendState::REPLACE),
