@@ -3,11 +3,8 @@ name = "shaders"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [lib]
 crate-type = ["dylib"]
 
 [dependencies]
-#glam = { version = ">=0.17, <=0.20", default-features = false, features = ["libm"] }
-spirv-std = { path = "../../../embark/rust-gpu/crates/spirv-std", features = ["glam"] }
+spirv-std = { version = "0.4.0-alpha", features = ["glam"] }
